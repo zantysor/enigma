@@ -13,7 +13,7 @@ sub MAIN($setting='1M2C3K') {
     }
   }
   my $m = Enigma::Machine.new;
-  $m.rotors = @rotors if @rotors;
+  $m.mount(@rotors) if @rotors;
   $m.set_window($window);
   for $*IN.lines() -> $line {
     say $m.cipher($line);
