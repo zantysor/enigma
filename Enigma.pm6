@@ -1,5 +1,18 @@
 module Enigma;
 
+class Plugboard {
+  has $.wires;
+  method exchange($letter) {
+    if defined(my $i = $.wires.index($letter)) {
+      return $.wires.comb[ Int($i/2) + 1 - $i%2 ];
+    } else {
+      return $letter;
+    }
+  }
+}
+
+$Plugboard::Zero = Plugboard.new(wires => '');
+
 class Reflector {
   has $.wires;
 
@@ -9,8 +22,8 @@ class Reflector {
   }
 }
 
-$Reflector::B = Reflector.new( wires => "YRUHQSLDPXNGOKMIEBFZCWVJAT" );
-$Reflector::C = Reflector.new( wires => "FVPJIAOYEDRZXWGCTKUQSBNMHL" );
+$Reflector::B = Reflector.new( wires => 'YRUHQSLDPXNGOKMIEBFZCWVJAT' );
+$Reflector::C = Reflector.new( wires => 'FVPJIAOYEDRZXWGCTKUQSBNMHL' );
 
 class Rotor {
   has $.wires;
@@ -30,10 +43,10 @@ class Rotor {
 }
 
 $Rotor::I   = Rotor.new(wires => 'EKMFLGDQVZNTOWYHXUSPAIBRCJ', notch => 'Q');
-$Rotor::II  = Rotor.new(wires => "AJDKSIRUXBLHWTMCQGZNPYFVOE", notch => "E");
-$Rotor::III = Rotor.new(wires => "BDFHJLCPRTXVZNYEIWGAKMUSQO", notch => "V");
-$Rotor::IV  = Rotor.new(wires => "ESOVPZJAYQUIRHXLNFTGKDCMWB", notch => "J");
-$Rotor::V   = Rotor.new(wires => "VZBRGITYUPSDNHLXAWMJQOFECK", notch => "Z");
+$Rotor::II  = Rotor.new(wires => 'AJDKSIRUXBLHWTMCQGZNPYFVOE', notch => 'E');
+$Rotor::III = Rotor.new(wires => 'BDFHJLCPRTXVZNYEIWGAKMUSQO', notch => 'V');
+$Rotor::IV  = Rotor.new(wires => 'ESOVPZJAYQUIRHXLNFTGKDCMWB', notch => 'J');
+$Rotor::V   = Rotor.new(wires => 'VZBRGITYUPSDNHLXAWMJQOFECK', notch => 'Z');
 
 class Mount {
   has $.rotor;
@@ -68,6 +81,7 @@ class Mount {
 class Machine {
   has $!mounts;
   has $.reflector = $Reflector::B;
+  has $.plugboard = $Plugboard::Zero;
 
   submethod BUILD(:$rotors = [ $Rotor::I, $Rotor::II, $Rotor::III ]) {
     self.mount($rotors);
@@ -97,14 +111,15 @@ class Machine {
           $advance = $r.rotate if $advance;
         }
 
-        $right.left_to_right(
+        $.plugboard.exchange(
+         $right.left_to_right(
           $mid.left_to_right(
            $left.left_to_right(
             $.reflector.reflect(
            $left.right_to_left(
           $mid.right_to_left(
          $right.right_to_left(
-        $l))))))) 
+        $.plugboard.exchange($l)))))))))
       }
     }).join
   }
